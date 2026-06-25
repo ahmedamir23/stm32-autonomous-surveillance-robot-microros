@@ -10,8 +10,9 @@ This repository contains the STM32CubeIDE firmware project for the embedded low-
 
 ### Key Capabilities
 
+- Real-time motor control via CAN with encoder feedback
 - Quadrature encoder reading on 3 independent timer channels (up to 6 wheels)
-- analog sensor acquisition via ADC with DMA
+- Ultrasonic / analog sensor acquisition via ADC with DMA
 - RC receiver input for seamless switching between manual teleoperation and autonomous navigation
 - RGB LED status indicators for visual robot state feedback (idle, RC mode, autonomous mode, fault, etc.)
 - CAN bus interface at 500 kbps for inter-board communication
@@ -106,6 +107,7 @@ This repository contains the STM32CubeIDE firmware project for the embedded low-
 - [STM32CubeIDE](https://www.st.com/en/development-tools/stm32cubeide.html) v1.18.1 or later
 - [STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) (optional, for pin reconfiguration)
 - ST-Link v2 or compatible debugger/programmer
+- [Docker](https://docs.docker.com/get-docker/) (recommended) **or** ROS 2 Humble+ for building the micro-ROS library
 - ROS 2 (Humble or later) installed on the companion host
 - `micro-ROS agent` running on the host over the USB serial port
 
@@ -117,7 +119,36 @@ git clone --recurse-submodules https://github.com/ahmedamir23/stm32-autonomous-s
 
 > The `--recurse-submodules` flag is required to pull in `micro_ros_stm32cubemx_utils`.
 
-### Build
+### Build the micro-ROS Library
+
+The micro-ROS precompiled static library must be generated before building the STM32CubeIDE project. This is handled by the `micro_ros_stm32cubemx_utils` submodule and requires Docker or a native ROS 2 environment on your build machine.
+
+**Option A — Docker (recommended, no ROS 2 install needed):**
+
+```bash
+cd micro_ros_stm32cubemx_utils
+docker run -it --rm \
+  -v $(pwd):/project \
+  --env MICROROS_LIBRARY_FOLDER=micro_ros_stm32cubemx_utils \
+  microros/micro_ros_static_library_builder:humble \
+  -p stm32f4
+```
+
+**Option B — Native ROS 2 (Humble or later):**
+
+```bash
+# Source your ROS 2 workspace first
+source /opt/ros/humble/setup.bash
+
+cd micro_ros_stm32cubemx_utils
+ros2 run micro_ros_setup create_firmware_ws.sh generate_lib
+```
+
+After either option, the compiled library (`libmicroros.a`) and generated headers will appear under `micro_ros_stm32cubemx_utils/`. STM32CubeIDE is already configured to link against them.
+
+> **Note:** The library only needs to be rebuilt if you change the micro-ROS configuration (e.g. memory tuning, middleware, or ROS 2 distro).
+
+### Build & Flash
 
 1. Open STM32CubeIDE and import the project (`File → Import → Existing Projects into Workspace`).
 2. Select the cloned directory.
@@ -177,3 +208,4 @@ Onboard RGB LEDs provide at-a-glance robot state feedback without needing a moni
 | Off | System idle / powered down |
 
 LED colors are driven via GPIO output pins on the STM32 and controlled from the `mainTask`.
+
