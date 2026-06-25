@@ -12,7 +12,7 @@ This repository contains the STM32CubeIDE firmware project for the embedded low-
 
 - Real-time motor control via CAN with encoder feedback
 - Quadrature encoder reading on 3 independent timer channels (up to 6 wheels)
-- Ultrasonic / analog sensor acquisition via ADC with DMA
+- Analog sensor acquisition via ADC with DMA
 - RC receiver input for seamless switching between manual teleoperation and autonomous navigation
 - RGB LED status indicators for visual robot state feedback (idle, RC mode, autonomous mode, fault, etc.)
 - CAN bus interface at 500 kbps for inter-board communication
